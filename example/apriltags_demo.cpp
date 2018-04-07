@@ -20,6 +20,7 @@ using namespace std;
 #include <vector>
 #include <list>
 #include <sys/time.h>
+#include <raspicam/raspicam_cv.h>
 
 const string usage = "\n"
   "Usage:\n"
@@ -462,13 +463,16 @@ public:
 
     cv::Mat image;
     cv::Mat image_gray;
+    raspicam::RaspiCam_Cv Camera;
 
     int frame = 0;
     double last_t = tic();
     while (true) {
 
       // capture frame
-      m_cap >> image;
+//      m_cap >> image;
+      Camera.grab();
+      Camera.retrieve(image);
 
       processImage(image, image_gray);
 
