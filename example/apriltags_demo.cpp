@@ -464,6 +464,8 @@ public:
     cv::Mat image;
     cv::Mat image_gray;
     raspicam::RaspiCam_Cv Camera;
+    Camera.set( CV_CAP_PROP_FORMAT, CV_8UC1 );
+    Camera.open();
 
     int frame = 0;
     double last_t = tic();
