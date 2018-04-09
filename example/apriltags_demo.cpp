@@ -330,17 +330,17 @@ public:
 #endif 
 
     // find and open a USB camera (built in laptop camera, web cam etc)
-    m_cap = cv::VideoCapture(m_deviceId);
-        if(!m_cap.isOpened()) {
-      cerr << "ERROR: Can't find video device " << m_deviceId << "\n";
-      exit(1);
-    }
-    m_cap.set(CV_CAP_PROP_FRAME_WIDTH, m_width);
-    m_cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_height);
-    cout << "Camera successfully opened (ignore error messages above...)" << endl;
-    cout << "Actual resolution: "
-         << m_cap.get(CV_CAP_PROP_FRAME_WIDTH) << "x"
-         << m_cap.get(CV_CAP_PROP_FRAME_HEIGHT) << endl;
+//    m_cap = cv::VideoCapture(m_deviceId);
+//        if(!m_cap.isOpened()) {
+//      cerr << "ERROR: Can't find video device " << m_deviceId << "\n";
+//      exit(1);
+//    }
+//    m_cap.set(CV_CAP_PROP_FRAME_WIDTH, m_width);
+//    m_cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_height);
+//    cout << "Camera successfully opened (ignore error messages above...)" << endl;
+//    cout << "Actual resolution: "
+//         << m_cap.get(CV_CAP_PROP_FRAME_WIDTH) << "x"
+//         << m_cap.get(CV_CAP_PROP_FRAME_HEIGHT) << endl;
 
   }
 
@@ -464,7 +464,8 @@ public:
     cv::Mat image;
     cv::Mat image_gray;
     raspicam::RaspiCam_Cv Camera;
-    Camera.set( CV_CAP_PROP_FORMAT, CV_8UC1 );
+    Camera.set(CV_CAP_PROP_FRAME_WIDTH, 160);
+    Camera.set(CV_CAP_PROP_FRAME_HEIGHT, 160);
     Camera.open();
 
     int frame = 0;
