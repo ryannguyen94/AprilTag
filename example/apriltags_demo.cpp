@@ -463,9 +463,11 @@ public:
 
     cv::Mat image;
     cv::Mat image_gray;
+    cv::Mat image_resize;
+
     raspicam::RaspiCam_Cv Camera;
-    Camera.set(CV_CAP_PROP_FRAME_WIDTH, 160);
-    Camera.set(CV_CAP_PROP_FRAME_HEIGHT, 160);
+    Camera.set(CV_CAP_PROP_FRAME_WIDTH, 480);
+    Camera.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
     Camera.open();
 
     int frame = 0;
@@ -477,7 +479,9 @@ public:
       Camera.grab();
       Camera.retrieve(image);
 
-      processImage(image, image_gray);
+      cv::resize(image, image_resize, cv::Size(240, 240));
+
+      processImage(image_resize, image_gray);
 
       // print out the frame rate at which image frames are being processed
       frame++;
