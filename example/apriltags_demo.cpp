@@ -22,6 +22,11 @@ using namespace std;
 #include <sys/time.h>
 #include <raspicam/raspicam_cv.h>
 
+// Actuator stuff
+#include "actuator.h"
+double result[2] = {0.0};
+//
+
 const string usage = "\n"
   "Usage:\n"
   "  apriltags_demo [OPTION...] [IMG1 [IMG2...]]\n"
@@ -168,7 +173,7 @@ public:
 
     m_width(240),
     m_height(240),
-    m_tagSize(0.05),
+    m_tagSize(0.0283),
     m_fx(300),
     m_fy(300),
     m_px(m_width/2),
@@ -376,6 +381,10 @@ public:
          << ", pitch=" << pitch
          << ", roll=" << roll
          << endl;
+    
+    result[0] = translation.norm();
+    result[1] = translation(1);
+     
 
     // Also note that for SLAM/multi-view application it is better to
     // use reprojection error of corner points, because the noise in
@@ -404,6 +413,10 @@ public:
 
     // print out each detection
     cout << detections.size() << " tags detected:" << endl;
+    if (detections.size() == 0) {
+		result[0] = 0;
+		result[1] = 0;
+	}
     for (int i=0; i<detections.size(); i++) {
       print_detection(detections[i]);
     }
@@ -461,39 +474,50 @@ public:
   // and information about detections generated
   void loop() {
 
-    cv::Mat image;
-    cv::Mat image_gray;
-    cv::Mat image_resize;
+	cv::Mat image;
+	cv::Mat image_gray;
+	cv::Mat image_resize;
 
-    raspicam::RaspiCam_Cv Camera;
-    Camera.set(CV_CAP_PROP_FRAME_WIDTH, 480);
-    Camera.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
-    Camera.open();
+	raspicam::RaspiCam_Cv Camera;
+	Camera.set(CV_CAP_PROP_FRAME_WIDTH, 480);
+	Camera.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+	Camera.open();
 
-    int frame = 0;
-    double last_t = tic();
-    while (true) {
+	int frame = 0;
+	double last_t = tic();
+	while (true) {
 
-      // capture frame
-//      m_cap >> image;
-      Camera.grab();
-      Camera.retrieve(image);
+		// capture frame
+		//      m_cap >> image;
+		Camera.grab();
+		Camera.retrieve(image);
 
-      cv::resize(image, image_resize, cv::Size(240, 240));
+		cv::resize(image, image_resize, cv::Size(240, 240));
 
-      processImage(image_resize, image_gray);
+		processImage(image_resize, image_gray);
 
-      // print out the frame rate at which image frames are being processed
-      frame++;
-      if (frame % 10 == 0) {
-        double t = tic();
-        cout << "  " << 10./(t-last_t) << " fps" << endl;
-        last_t = t;
-      }
+		float throttle = 0, steering = 0.5;
+		
+		if (result[0] > 0.2) {
+			throttle = (result[0] - 0.2) / 0.2;
+		}
+		
+		steering = (result[1] + 0.04) * 12.5 + 0.01;
+		
+		set_pwm(0, throttle);
+		set_pwm(1, steering);
 
-      // exit if any key is pressed
-      if (cv::waitKey(1) >= 0) break;
-    }
+		// print out the frame rate at which image frames are being processed
+		frame++;
+		if (frame % 10 == 0) {
+		double t = tic();
+		cout << "  " << 10./(t-last_t) << " fps" << endl;
+		last_t = t;
+		}
+
+		// exit if any key is pressed
+		if (cv::waitKey(1) >= 0) break;
+	}
   }
 
 }; // Demo
@@ -501,29 +525,45 @@ public:
 
 // here is were everything begins
 int main(int argc, char* argv[]) {
-  Demo demo;
+	
+	init_actuator();
+	set_pwm(0, 0);
+	//~ for (int i = 1; i < 10; i++) {
+		//~ float pwm = i*0.1;
+		//~ set_pwm(0, pwm);
+		//~ set_pwm(1, pwm);
+		//~ sleep(1);
+	//~ }
+	
+	//~ for (int i = 9; i >= 0; i--) {
+		//~ float pwm = i*0.1;
+		//~ set_pwm(0, pwm);
+		//~ set_pwm(1, pwm);
+		//~ sleep(1);
+	//~ }
+	Demo demo;
 
-  // process command line options
-  demo.parseOptions(argc, argv);
+	// process command line options
+	demo.parseOptions(argc, argv);
 
-  demo.setup();
+	demo.setup();
 
-  if (demo.isVideo()) {
-    cout << "Processing video" << endl;
+	if (demo.isVideo()) {
+	cout << "Processing video" << endl;
 
-    // setup image source, window for drawing, serial port...
-    demo.setupVideo();
+	// setup image source, window for drawing, serial port...
+	demo.setupVideo();
 
-    // the actual processing loop where tags are detected and visualized
-    demo.loop();
+	// the actual processing loop where tags are detected and visualized
+	demo.loop();
 
-  } else {
-    cout << "Processing image" << endl;
+	} else {
+	cout << "Processing image" << endl;
 
-    // process single image
-    demo.loadImages();
+	// process single image
+	demo.loadImages();
 
-  }
+	}
 
   return 0;
 }

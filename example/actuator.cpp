@@ -37,12 +37,14 @@ unsigned char buffer[60] = {0};
 #define OUTDRV             	0x04
 
 //DEADZONE
-#define MIN_DRIVE			1200
-#define MAX_DRIVE			1250
+#define MIN_DRIVE			1420
+#define MAX_DRIVE			1500
 //~ #define MAX_DRIVE			1187
-//~ #define MIN_TURN			409
-#define MIN_TURN			1000
-#define	MAX_TURN			1638
+#define MIN_TURN			409
+//~ #define MIN_TURN			1000
+#define	MAX_TURN			1750
+
+static float clamp (float value, float max, float min);
 
 void init_actuator() {
 	//----- OPEN THE I2C BUS -----
@@ -94,6 +96,9 @@ void init_actuator() {
 void set_pwm(unsigned short channel, float pwm) {
 	uint16_t _PWM = 0;
 	channel *= 4;
+	
+	pwm = clamp(pwm, 1.0, 0.0);
+	
 	if (pwm == 0) {
 		_PWM = 0;
 	} else if (channel == 0) {
@@ -132,5 +137,12 @@ void set_pwm(unsigned short channel, float pwm) {
 	}
 		
 	
+}
+
+static float clamp ( float value, float max, float min) {
+	if (value < min) {
+		value = min;
+	} else if (value > max) value = max;
+	return value;
 }
 
