@@ -10,12 +10,9 @@ link_libraries(apriltags bcm2835)
 
 IF  ( OpenCV_FOUND AND raspicam_CV_FOUND)
 
-add_executable(apriltags_demo apriltags_demo.cpp Serial.cpp actuator.cpp actuator.h)
+add_executable(apriltags_demo apriltags_demo.cpp Serial.cpp)
 target_link_libraries (apriltags_demo ${raspicam_CV_LIBS} bcm2835 Actuator)
 pods_install_executables(apriltags_demo)
-
-# add_executable(imu imu.cpp Serial.cpp)
-# pods_install_executables(imu)
 
 ELSE()
 MESSAGE(FATAL_ERROR "OPENCV NOT FOUND IN YOUR SYSTEM")

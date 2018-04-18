@@ -37,11 +37,9 @@ unsigned char buffer[60] = {0};
 #define OUTDRV             	0x04
 
 //DEADZONE
-#define MIN_DRIVE			1420
-#define MAX_DRIVE			1500
-//~ #define MAX_DRIVE			1187
+#define MIN_DRIVE			1200
+#define MAX_DRIVE			1300
 #define MIN_TURN			409
-//~ #define MIN_TURN			1000
 #define	MAX_TURN			1750
 
 static float clamp (float value, float max, float min);

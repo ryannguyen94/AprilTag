@@ -334,19 +334,6 @@ public:
     v4l2_close(device);
 #endif 
 
-    // find and open a USB camera (built in laptop camera, web cam etc)
-//    m_cap = cv::VideoCapture(m_deviceId);
-//        if(!m_cap.isOpened()) {
-//      cerr << "ERROR: Can't find video device " << m_deviceId << "\n";
-//      exit(1);
-//    }
-//    m_cap.set(CV_CAP_PROP_FRAME_WIDTH, m_width);
-//    m_cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_height);
-//    cout << "Camera successfully opened (ignore error messages above...)" << endl;
-//    cout << "Actual resolution: "
-//         << m_cap.get(CV_CAP_PROP_FRAME_WIDTH) << "x"
-//         << m_cap.get(CV_CAP_PROP_FRAME_HEIGHT) << endl;
-
   }
 
   void print_detection(AprilTags::TagDetection& detection) const {
@@ -487,8 +474,6 @@ public:
 	double last_t = tic();
 	while (true) {
 
-		// capture frame
-		//      m_cap >> image;
 		Camera.grab();
 		Camera.retrieve(image);
 
@@ -516,7 +501,12 @@ public:
 		}
 
 		// exit if any key is pressed
-		if (cv::waitKey(1) >= 0) break;
+		if (cv::waitKey(1) >= 0) {
+			set_pwm(0, 0);
+			set_pwm(1, 0);
+
+			break;
+		}
 	}
   }
 
@@ -528,19 +518,7 @@ int main(int argc, char* argv[]) {
 	
 	init_actuator();
 	set_pwm(0, 0);
-	//~ for (int i = 1; i < 10; i++) {
-		//~ float pwm = i*0.1;
-		//~ set_pwm(0, pwm);
-		//~ set_pwm(1, pwm);
-		//~ sleep(1);
-	//~ }
-	
-	//~ for (int i = 9; i >= 0; i--) {
-		//~ float pwm = i*0.1;
-		//~ set_pwm(0, pwm);
-		//~ set_pwm(1, pwm);
-		//~ sleep(1);
-	//~ }
+
 	Demo demo;
 
 	// process command line options
