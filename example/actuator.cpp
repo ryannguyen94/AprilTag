@@ -37,14 +37,23 @@ unsigned char buffer[60] = {0};
 #define OUTDRV             	0x04
 
 //DEADZONE
-#define MIN_DRIVE			1200
-#define MAX_DRIVE			1300
-#define MIN_TURN			409
-#define	MAX_TURN			1750
+#define BRAKING				1100
+#define THROTTLE_ZERO		1100
+#define MIN_DRIVE			1175
+#define MAX_DRIVE			1225
+#define MIN_TURN			800
+#define	MAX_TURN			1600
+
+#define ENABLE(state)				bcm2835_gpio_write(RPI_GPIO_P1_11, state)        //RPI1B+ & RPi2B
+
 
 static float clamp (float value, float max, float min);
 
 void init_actuator() {
+	bcm2835_init();
+	bcm2835_gpio_fsel(RPI_GPIO_P1_11, BCM2835_GPIO_FSEL_OUTP);		//RPI1B+ & RPi2B <<Set as output
+	ENABLE(1);
+	
 	//----- OPEN THE I2C BUS -----
 	char *filename = (char*)"/dev/i2c-1";
 	if ((file_i2c = open(filename, O_RDWR)) < 0)
@@ -93,7 +102,6 @@ void init_actuator() {
 
 void set_pwm(unsigned short channel, float pwm) {
 	uint16_t _PWM = 0;
-	channel *= 4;
 	
 	pwm = clamp(pwm, 1.0, 0.0);
 	
@@ -104,7 +112,14 @@ void set_pwm(unsigned short channel, float pwm) {
 	} else {
 		_PWM = MIN_TURN + pwm * (MAX_TURN - MIN_TURN);
 	}
-	printf("PWM is %i\n", _PWM);
+	set_raw_pwm(channel, _PWM);
+		
+	
+}
+
+void set_raw_pwm(unsigned short channel, int pwm) {
+	
+	channel *= 4;
 	uint8_t length = 2;
 	buffer[0] = LED0_ON_L + channel;
 	buffer[1] = 0;
@@ -121,20 +136,30 @@ void set_pwm(unsigned short channel, float pwm) {
 	}
 	
 	buffer[0] = LED0_OFF_L + channel;
-	buffer[1] = _PWM & 0xFF;
+	buffer[1] = pwm & 0xFF;
 	if (write(file_i2c, buffer, length) != length)	
 	{
 		printf("Failed to write to the i2c bus.\n");
 	}
 	
 	buffer[0] = LED0_OFF_H + channel;
-	buffer[1] = _PWM >> 8;
+	buffer[1] = pwm >> 8;
 	if (write(file_i2c, buffer, length) != length)
 	{
 		printf("Failed to write to the i2c bus.\n");
 	}
-		
-	
+}
+
+void init_throttle(unsigned short channel) {
+	set_raw_pwm(channel, THROTTLE_ZERO);
+}
+
+void brake(unsigned short channel) {
+	set_raw_pwm(channel, BRAKING);
+}
+
+void stop(unsigned short channel) {
+	set_pwm(channel, 0);
 }
 
 static float clamp ( float value, float max, float min) {
@@ -142,5 +167,9 @@ static float clamp ( float value, float max, float min) {
 		value = min;
 	} else if (value > max) value = max;
 	return value;
+}
+
+void disable() {
+	ENABLE(0);
 }
 

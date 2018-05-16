@@ -21,6 +21,7 @@ using namespace std;
 #include <list>
 #include <sys/time.h>
 #include <raspicam/raspicam_cv.h>
+#include <math.h>
 
 // Actuator stuff
 #include "actuator.h"
@@ -135,7 +136,7 @@ class Demo {
   AprilTags::TagDetector* m_tagDetector;
   AprilTags::TagCodes m_tagCodes;
 
-  bool m_draw; // draw image and April tag detections?
+   bool m_draw; // draw image and April tag detections?
   bool m_arduino; // send tag detections to serial port?
   bool m_timing; // print timing information for each tag extraction call
 
@@ -173,7 +174,7 @@ public:
 
     m_width(240),
     m_height(240),
-    m_tagSize(0.0283),
+    m_tagSize(0.0486),
     m_fx(300),
     m_fy(300),
     m_px(m_width/2),
@@ -483,14 +484,19 @@ public:
 
 		float throttle = 0, steering = 0.5;
 		
-		if (result[0] > 0.2) {
-			throttle = (result[0] - 0.2) / 0.2;
-		}
+		steering = (result[1] + 0.04) * 7.5; //Max at 12.5
+		set_pwm(1, fabs(steering) + 0.01);
+		float steeringPWM = fabs(steering) + 0.01;
+		printf("Steering pwm is: %f\n", steeringPWM);
 		
-		steering = (result[1] + 0.04) * 12.5 + 0.01;
-		
-		set_pwm(0, throttle);
-		set_pwm(1, steering);
+		if (result[0] > 0.3) {
+			throttle = (result[0] - 0.3) / 0.4;
+			set_pwm(0, throttle);
+			printf("Throttle pwm is: %f\n", throttle);
+		} else {
+			brake(0);
+			printf("braking\n");
+		}				
 
 		// print out the frame rate at which image frames are being processed
 		frame++;
@@ -504,7 +510,7 @@ public:
 		if (cv::waitKey(1) >= 0) {
 			set_pwm(0, 0);
 			set_pwm(1, 0);
-
+			disable();
 			break;
 		}
 	}
@@ -518,6 +524,8 @@ int main(int argc, char* argv[]) {
 	
 	init_actuator();
 	set_pwm(0, 0);
+	init_throttle(0);
+	sleep(2);
 
 	Demo demo;
 
