@@ -484,13 +484,13 @@ public:
 
 		float throttle = 0, steering = 0.5;
 		
-		steering = (result[1] + 0.04) * 7.5; //Max at 12.5
+		steering = (result[1] + 0.15) * 3; //Max at 12.5
 		set_pwm(1, fabs(steering) + 0.01);
 		float steeringPWM = fabs(steering) + 0.01;
 		printf("Steering pwm is: %f\n", steeringPWM);
 		
-		if (result[0] > 0.3) {
-			throttle = (result[0] - 0.3) / 0.4;
+		if (result[0] > 0.25) {
+			throttle = (result[0] - 0.25) / 0.3;
 			set_pwm(0, throttle);
 			printf("Throttle pwm is: %f\n", throttle);
 		} else {
@@ -508,10 +508,12 @@ public:
 
 		// exit if any key is pressed
 		if (cv::waitKey(1) >= 0) {
+			cout << "Stopping" << endl;
 			set_pwm(0, 0);
 			set_pwm(1, 0);
 			disable();
 			break;
+			cout << "Breaking" << endl;
 		}
 	}
   }

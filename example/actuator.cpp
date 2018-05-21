@@ -39,8 +39,8 @@ unsigned char buffer[60] = {0};
 //DEADZONE
 #define BRAKING				1100
 #define THROTTLE_ZERO		1100
-#define MIN_DRIVE			1175
-#define MAX_DRIVE			1225
+#define MIN_DRIVE			1200
+#define MAX_DRIVE			1250
 #define MIN_TURN			800
 #define	MAX_TURN			1600
 
